@@ -14,25 +14,25 @@ defmodule SolverTest do
     assert @pos_1_2 == pos_to_sol(@pos_1_2)
   end
 
-  test "eliminate_peer" do
-    assert @sol_1 = eliminate_peer(@pos_1_2, @sol_2)
-    assert @pos_1_2 = eliminate_peer(@pos_1_2, @pos_1_2)
-    assert @sol_1 = eliminate_peer(@sol_1, @sol_2)
+  test "eliminate_peer_values" do
+    assert @sol_1 = eliminate_peer_values(@pos_1_2, @sol_2)
+    assert @pos_1_2 = eliminate_peer_values(@pos_1_2, @pos_1_2)
+    assert @sol_1 = eliminate_peer_values(@sol_1, @sol_2)
   end
 
-  test "eliminate_peers" do
-    assert @sol_1 = eliminate_peers(@pos_1_2, [@pos_1_2_3, @sol_2])
+  test "eliminate_peers_values" do
+    assert @sol_1 = eliminate_peers_values(@pos_1_2, [@pos_1_2_3, @sol_2])
   end
 
   test "solved_count" do
     assert 32 == Problems.easy1 |> Parser.parse |> Solver.solved_count
   end
 
-  test "eliminate_from_cells_recurse can solve easy1" do
-    assert true == Problems.easy1 |> Parser.parse |> Solver.eliminate_from_cells_recurse |> Solver.solved?
+  test "solve_cells_recurse can solve easy1" do
+    assert true == Problems.easy1 |> Parser.parse |> Solver.solve_cells_recurse |> Solver.solved?
   end
 
-  test "eliminate_from_cells_recurse cannot solve hard1" do
-    assert false == Problems.hard1 |> Parser.parse |> Solver.eliminate_from_cells_recurse |> Solver.solved?
+  test "solve_cells_recurse cannot solve hard1" do
+    assert false == Problems.hard1 |> Parser.parse |> Solver.solve_cells_recurse |> Solver.solved?
   end
 end
