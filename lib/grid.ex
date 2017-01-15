@@ -42,6 +42,10 @@ defmodule Grid do
     Map.get(cells, cell)
   end
 
+  def put_cell(%Grid{cells: cells} = grid, {_r,_c} = cell, value) do
+    %Grid{ grid | cells: Map.put(cells, cell, value)}
+  end
+
   defp cross(rows, cols) do
     for r <- rows,
         c <- cols do
