@@ -1,12 +1,12 @@
 defmodule Grid do
   @row_groups [[:a,:b,:c],[:d,:e,:f],[:g,:h,:i]]
   @col_groups [[ 1, 2, 3],[ 4, 5, 6],[ 7, 8, 9]]
-  @rows List.flatten(@row_groups)
-  @cols List.flatten(@col_groups)
+  @row_ids List.flatten(@row_groups)
+  @col_ids List.flatten(@col_groups)
 
   defstruct cells: %{}
 
-  def all_cells, do: cross(@rows, @cols)
+  def all_cells, do: cross(@row_ids, @col_ids)
 
   def get_units({_r, _c}=cell) do
     [get_row(cell), get_col(cell), get_square(cell)]
@@ -18,11 +18,27 @@ defmodule Grid do
     |> MapSet.delete(cell)
   end
 
+  @doc "Returns all squares"
   def squares do
     cross(@row_groups, @col_groups)
     |> Enum.map( fn {row_group, col_group} ->
       cross(row_group, col_group) |> MapSet.new
     end)
+  end
+
+  @doc "Returns all rows"
+  def rows do
+    Enum.map(@row_ids, fn(r) -> get_row({r, 1}) end)
+  end
+
+  @doc "Returns all cols"
+  def cols do
+    Enum.map(@col_ids, fn(c) -> get_col({:a, c}) end)
+  end
+
+  @doc "Returns all units (rows, cols, squares)"
+  def units do
+    rows ++ cols ++ squares
   end
 
   def get_square({_r, _c} = cell) do

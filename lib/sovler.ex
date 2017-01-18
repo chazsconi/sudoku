@@ -49,18 +49,40 @@ defmodule Solver do
       end)
   end
 
-  @doc "True if solved"
+  @doc "Returns the list of unsolved cells ordered by remaining possibilities"
+  def ordered_pos(%Grid{cells: cells}) do
+    cells
+    |> Enum.filter( fn({_, {type, _}}) -> type == :pos end )
+    |> Enum.sort( fn({_, {:pos, pos1}}, {_, {:pos, pos2}}) ->
+      MapSet.size(pos1) < MapSet.size(pos2)
+    end)
+    |> Enum.map(fn({cell, _}) -> cell end)
+  end
+
+  @doc "True if valid"
+  def valid?(%Grid{}=grid), do: Enum.all?(Grid.units, &valid?(grid, &1))
+
+  @doc "True if the unit is valid (no duplicate solved values)"
+  def valid?(%Grid{}=grid, %MapSet{}=unit) do
+    solved = Enum.filter_map(unit, &solved?(grid, &1), &Grid.get_cell(grid, &1))
+    length(solved) == length(Enum.uniq(solved))
+    # TODO:  Perhaps some more sophisticated checks here e.g. set of all = digits
+  end
+
+  @doc "True if grid solved"
   def solved?(%Grid{}=grid), do: solved_count(grid) == 81
+
+  @doc "True if cell solved"
+  def solved?(%Grid{}=grid, {_r,_c}=cell) do
+    case Grid.get_cell(grid, cell) do
+      {:sol, _} -> true
+      _ -> false
+    end
+  end
 
   @doc "Returns number of solved cells"
   def solved_count(%Grid{}=grid) do
-    Enum.count(Grid.all_cells,
-      fn(cell) ->
-        case Grid.get_cell(grid, cell) do
-          {:sol, _} -> true
-          _ -> false
-        end
-      end)
+    Enum.count(Grid.all_cells, &solved?(grid, &1))
   end
 
   def eliminate_units_pos_from_cell(%Grid{}=grid, {_r, _c} = cell) do
