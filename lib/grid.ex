@@ -4,7 +4,7 @@ defmodule Grid do
   @row_ids List.flatten(@row_groups)
   @col_ids List.flatten(@col_groups)
 
-  defstruct cells: %{}
+  defstruct cells: %{}, valid?: true
 
   def all_cells, do: cross(@row_ids, @col_ids)
 

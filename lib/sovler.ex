@@ -1,22 +1,37 @@
 defmodule Solver do
 
   @doc "Tries multiple algorithms to solve"
+  def solve(%Grid{}=grid, algorithms, opts \\ []) do
+    algorithms
+    |> Enum.reduce({:unsolved, grid},
+      fn(algorithm, {:unsolved, grid}) ->
+          case algorithm do
+            :peer_values -> solve_cells_recurse(grid, algorithm, opts)
+            :search -> search(grid, opts)
+          end
+        (_, {:solved, grid}) -> {:solved, grid}
+    end)
+  end
+
+  @doc "Tries multiple algorithms to solve"
   def solve_cells_multiple_algorithms(%Grid{}=grid, opts \\ []) do
-    [:peer_values, :unit_pos, :peer_values, :unit_pos]
+    [:peer_values] #, :unit_pos, :peer_values]
     |> Enum.reduce(grid,
       fn(algorithm, grid) ->
         solve_cells_recurse(grid, algorithm, opts)
+        # TODO: stop when invalid
       end)
   end
 
   @doc "Recursively tries to solve cells with multiple passes"
   def solve_cells_recurse(%Grid{}=grid, algorithm, opts \\ []) do
     if solved?(grid) do
-      grid
+      {:solved, grid}
     else
       case solve_cells(grid, algorithm, opts) do
-        {grid1, 0} -> grid1
+        {grid1, 0} -> {:unsolved, grid1}
         {grid1, _} -> solve_cells_recurse(grid1, algorithm, opts)
+        # :invalid -> :invalid
       end
     end
   end
@@ -24,11 +39,13 @@ defmodule Solver do
   @doc "tries solves all cells"
   def solve_cells(%Grid{}=grid, algorithm, opts \\ []) do
     {visualise, _opts} = Keyword.pop(opts, :visualise)
+    {delay, _opts} = Keyword.pop(opts, :delay, 0)
     Enum.reduce(Grid.all_cells, {grid, 0},
-      fn(cell, {grid1, change_count}) ->
+      fn(_cell, {%Grid{valid?: false}=grid, change_count}) -> {grid, change_count}
+        ( cell, {%Grid{valid?: true}=grid1, change_count}) ->
         if visualise do
           Visualiser.visualise(grid1, algorithm, cell)
-          :timer.sleep(5)
+          :timer.sleep(delay)
         end
 
         result =
@@ -42,11 +59,44 @@ defmodule Solver do
           {:updated, grid2} ->
             if visualise do
               Visualiser.visualise(grid2, algorithm, cell)
-              :timer.sleep(10)
+              :timer.sleep(delay)
             end
-            {grid2, change_count+1}
+            {set_valid(grid2), change_count+1}
         end
       end)
+  end
+
+  def search(%Grid{}=grid, opts \\ []) do
+    {visualise, _opts} = Keyword.pop(opts, :visualise)
+    candidate_cell = ordered_pos(grid) |> hd
+    if visualise, do: Visualiser.visualise(grid, :search, candidate_cell)
+
+    {:pos, val} = Grid.get_cell(grid, candidate_cell)
+    candidate_vals = val |> MapSet.to_list
+    try_candidates(grid, candidate_cell, candidate_vals, opts)
+  end
+
+  defp try_candidates(%Grid{}=grid, candidate_cell, [], opts), do: :invalid
+  defp try_candidates(%Grid{}=grid, candidate_cell, [candidate_val | candidate_vals], opts) do
+    case try_candidate(grid, candidate_cell, candidate_val, opts) do
+      {:solved, grid} -> {:solved, grid}
+      :invalid ->
+        try_candidates(grid, candidate_cell, candidate_vals, opts)
+    end
+  end
+
+  defp try_candidate(%Grid{}=grid, candidate_cell, candidate_val, opts) do
+    grid_try = Grid.put_cell(grid, candidate_cell, {:sol, candidate_val})
+
+    {_, grid_try2} = solve_cells_recurse(grid_try, :peer_values, opts)
+    case {solved?(grid_try2), valid?(grid_try2)} do
+      {true, true} ->
+          {:solved, grid_try2}
+      {false, true} ->
+          search(grid_try2, opts)
+      _ ->
+          :invalid
+    end
   end
 
   @doc "Returns the list of unsolved cells ordered by remaining possibilities"
@@ -58,6 +108,8 @@ defmodule Solver do
     end)
     |> Enum.map(fn({cell, _}) -> cell end)
   end
+
+  def set_valid(%Grid{}=grid), do: %{grid | valid?: valid?(grid)}
 
   @doc "True if valid"
   def valid?(%Grid{}=grid), do: Enum.all?(Grid.units, &valid?(grid, &1))

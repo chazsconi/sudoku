@@ -1,6 +1,8 @@
 # Sudoku
 
-**TODO: Add description**
+Based on:
+http://norvig.com/sudoku.html
+
 
 ## Installation
 
@@ -21,4 +23,3 @@ If [available in Hex](https://hex.pm/docs/publish), the package can be installed
       [applications: [:sudoku]]
     end
     ```
-

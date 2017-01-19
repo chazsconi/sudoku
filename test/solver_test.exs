@@ -66,10 +66,10 @@ defmodule SolverTest do
   end
 
   test "solve_cells_recurse can solve easy1" do
-    assert true == Problems.easy1 |> Parser.parse |> Solver.solve_cells_recurse(:peer_values) |> Solver.solved?
+    assert {:solved, _} = Problems.easy1 |> Parser.parse |> Solver.solve_cells_recurse(:peer_values)
   end
 
   test "solve_cells_recurse cannot solve hard1" do
-    assert false == Problems.hard1 |> Parser.parse |> Solver.solve_cells_recurse(:peer_values) |> Solver.solved?
+    assert {:unsolved, _} = Problems.hard1 |> Parser.parse |> Solver.solve_cells_recurse(:peer_values)
   end
 end

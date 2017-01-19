@@ -1,10 +1,11 @@
 defmodule Visualiser do
   import IO.ANSI, only: [clear: 0, home: 0, red: 0, default_color: 0]
 
-  def visualise(%Grid{}=grid, algorithm, highlight \\ nil) do
+  def visualise(%Grid{}=grid, algorithm \\ nil, highlight \\ nil) do
     IO.puts [clear, home, to_string(output(grid, highlight)),
       "\n", "Remaining: #{81 - Solver.solved_count(grid)}",
       "\n", "Algorithm: #{inspect algorithm}" ]
+    grid
   end
 
   @divider "-------+-------+-------\n"
