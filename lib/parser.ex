@@ -1,4 +1,5 @@
 defmodule Parser do
+  require Grid
   @digits Enum.to_list(1..9) |> MapSet.new
 
   def parse(problem) do

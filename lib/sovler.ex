@@ -1,4 +1,5 @@
 defmodule Solver do
+  require Grid
 
   @doc "Tries multiple algorithms to solve"
   def solve(%Grid{}=grid, algorithms, opts \\ []) do

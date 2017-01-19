@@ -6,7 +6,49 @@ defmodule Grid do
 
   defstruct cells: %{}, valid?: true
 
-  def all_cells, do: cross(@row_ids, @col_ids)
+  defp cross(rows, cols) do
+    for r <- rows,
+        c <- cols do
+      {r, c}
+    end
+  end
+
+  @doc "Returns all squares"
+  defmacro squares do
+    cross(@row_groups, @col_groups)
+    |> Enum.map( fn {row_group, col_group} ->
+      cross(row_group, col_group) |> MapSet.new
+    end)
+    |> Macro.escape
+  end
+
+  defmacro all_cells, do: cross(@row_ids, @col_ids)
+
+  @doc "Returns all rows"
+  defmacro rows do
+    Enum.map(@row_ids,
+      fn(row_id) ->
+        Enum.map(@col_ids, fn(col_id) -> {row_id, col_id} end)
+        |> MapSet.new
+      end)
+    |> Macro.escape
+  end
+
+  @doc "Returns all cols"
+  defmacro cols do
+    Enum.map(@col_ids,
+      fn(col_id) ->
+        Enum.map(@row_ids, fn(row_id) -> {row_id, col_id} end)
+        |> MapSet.new
+      end)
+    |> Macro.escape
+  end
+
+  @doc "Returns all units (rows, cols, squares)"
+  defmacro units do
+    rows ++ cols ++ squares
+    |> Macro.escape
+  end
 
   def get_units({_r, _c}=cell) do
     [get_row(cell), get_col(cell), get_square(cell)]
@@ -16,29 +58,6 @@ defmodule Grid do
     get_units(cell)
     |> Enum.reduce(MapSet.new, fn(unit, acc) -> MapSet.union(unit, acc) end)
     |> MapSet.delete(cell)
-  end
-
-  @doc "Returns all squares"
-  def squares do
-    cross(@row_groups, @col_groups)
-    |> Enum.map( fn {row_group, col_group} ->
-      cross(row_group, col_group) |> MapSet.new
-    end)
-  end
-
-  @doc "Returns all rows"
-  def rows do
-    Enum.map(@row_ids, fn(r) -> get_row({r, 1}) end)
-  end
-
-  @doc "Returns all cols"
-  def cols do
-    Enum.map(@col_ids, fn(c) -> get_col({:a, c}) end)
-  end
-
-  @doc "Returns all units (rows, cols, squares)"
-  def units do
-    rows ++ cols ++ squares
   end
 
   def get_square({_r, _c} = cell) do
@@ -60,12 +79,5 @@ defmodule Grid do
 
   def put_cell(%Grid{cells: cells} = grid, {_r,_c} = cell, value) do
     %Grid{ grid | cells: Map.put(cells, cell, value)}
-  end
-
-  defp cross(rows, cols) do
-    for r <- rows,
-        c <- cols do
-      {r, c}
-    end
   end
 end
