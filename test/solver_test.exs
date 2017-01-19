@@ -72,4 +72,23 @@ defmodule SolverTest do
   test "solve_cells_recurse cannot solve hard1" do
     assert {:unsolved, _} = Problems.hard1 |> Parser.parse |> Solver.solve_cells_recurse(:peer_values)
   end
+
+  test "search can solve easy1" do
+    assert {:solved, _} = Problems.easy1 |> Parser.parse |> Solver.search
+  end
+
+  @tag :slow
+  test "search can solve hard1" do
+    assert {:solved, _} = Problems.hard1 |> Parser.parse |> Solver.search
+  end
+
+  @tag :slow
+  test "search can solve hard2" do
+    assert {:solved, _} = Problems.hard2 |> Parser.parse |> Solver.search
+  end
+
+  @tag :slow
+  test "search can solve hardest1" do
+    assert {:solved, _} = Problems.hardest1 |> Parser.parse |> Solver.search
+  end
 end
